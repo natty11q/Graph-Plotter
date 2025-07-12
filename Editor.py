@@ -21,8 +21,10 @@ class Editor:
         self.pan_offset = vector()
         self.tile = settings.TILE_SIZE
         self.time = 0
-        self.lineON1 = False
-        self.lineON2 = False
+        # self.lineON1 = False
+        self.lineON1 = True
+        # self.lineON2 = False
+        self.lineON2 = True
         self.position = 0
 
         # support lines 
@@ -191,7 +193,7 @@ class Editor:
            
             
             self.Resolution = 50
-            self.speed = 1
+            self.speed = 0.2
             
             X = (i/self.Resolution)
             X_P = ((i + 1)/self.Resolution)
@@ -247,12 +249,12 @@ class Editor:
             self.xcol = "green"
             
             
-            if i % 3 == 0:
-                self.xcol = "red"
-            elif i % 3 != 0 and i % 2 == 0:
-                self.xcol = "green"
-            else:
-                self.xcol = "blue"
+            # if i % 3 == 0:
+            #     self.xcol = "red"
+            # elif i % 3 != 0 and i % 2 == 0:
+            #     self.xcol = "green"
+            # else:
+            #     self.xcol = "blue"
             
             if func1 > func2:
             
