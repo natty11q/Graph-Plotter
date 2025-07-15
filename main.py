@@ -3,7 +3,7 @@ from settings2 import *
 import settings
 import sys
 
-from Editor import Editor
+from Editor_old import Editor
 
 class Main:
     def __init__(self):
@@ -22,7 +22,7 @@ class Main:
             dt = self.clock.tick() / 1000
 
             
-            self.editor.run(dt)
+            self.editor.Update(dt)
             pygame.display.update()
             
 if __name__ == '__main__':
