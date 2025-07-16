@@ -2,11 +2,11 @@ __PYHAME_ONLY = True
 
 
 #inputs and disp
-import pygame, sys
+import pygame, sys, os
 import math
 from enum import Enum, auto
 
-
+from Common import *
 from Maths.Maths import *
 
 
@@ -52,9 +52,12 @@ class EditorState(Enum):
 
 
 
+
 class Editor:
     def __init__(self):
         self.display_surface = pygame.display.get_surface() # modify in future for more general impl to increase speeds using gpu accel. dont lock to pygame
+
+        self.__settingsFilePathCache : str | None = None
 
         self.__originPos  = Vec2()
         self.__panActive  = False
@@ -63,6 +66,25 @@ class Editor:
 
         self.__settings : __EDITOR_SETTINGS = __EDITOR_SETTINGS()
 
+
+    def Load(self, settingsPath : str | None = None):
+        if not settingsPath:
+            return
+        
+        if not os.path.exists(settingsPath):
+            return
+        
+
+        settingsData = {}
+                
+        with open(settingsPath, "r") as data:
+            settingsData = json.load(data)
+        
+
+        self.__settingsFilePathCache = settingsPath
+
+
+
     def Update(self, dt : float):
         ...
 
@@ -70,5 +92,6 @@ class Editor:
         ...
 
     def Draw(self):
+
         col : tuple[float, ...] = self.__settings.GRAPHICS.BackGroundColour.get_p()
         self.display_surface.fill(col) # type: ignore

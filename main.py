@@ -3,7 +3,7 @@ from settings2 import *
 import settings
 import sys
 
-from Editor_old import Editor
+from Editor.Editor import Editor
 
 class Main:
     def __init__(self):
@@ -11,7 +11,9 @@ class Main:
         self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         self.clock = pygame.time.Clock()
 
+
         self.editor = Editor()
+        self.editor.Load()
 
     def run(self):
         
