@@ -1,7 +1,6 @@
 from Maths.Maths import *
 import numpy
 
-
 class P_Function:
     def __init__(self):
         self.axies      : list[str] = ["X","Y"]

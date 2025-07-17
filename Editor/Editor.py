@@ -1,4 +1,4 @@
-__PYHAME_ONLY = True
+__PYGAME_ONLY = True
 
 
 #inputs and disp
@@ -21,7 +21,10 @@ DEFAULT_MINOR_RULE_LINE_COL     = Vec3(25,25,25)
 DEFAULT_MINOR_RULE_LINE_OPACITY = 1.0
 
 DEFAULT_GRAPH_DENSITY   = 5
-CALC_CYCLES_PER_SECOND  = 120
+DEFAULT_CALC_CYCLES_PER_SECOND  = 120
+
+DEFAULT_SCROLL_SPEED    = 1
+DEFAULT_ZOOM_SPEED      = 1
 
 
 
@@ -39,7 +42,10 @@ class __EDITOR_SETTINGS:
 
     class GENERAL:
         GraphDensity        = DEFAULT_GRAPH_DENSITY # points per major rule
-        CalcCyclesPerSecond = CALC_CYCLES_PER_SECOND # how many times the calculation thread runs per second
+        CalcCyclesPerSecond = DEFAULT_CALC_CYCLES_PER_SECOND # how many times the calculation thread runs per second
+
+        ScrollSpeed     = DEFAULT_SCROLL_SPEED
+        ZoomSpeed       = DEFAULT_ZOOM_SPEED
     
     class TEMPORAL:
         Time : float            = 0.0
@@ -55,7 +61,9 @@ class EditorState(Enum):
 
 class Editor:
     def __init__(self):
-        self.display_surface = pygame.display.get_surface() # modify in future for more general impl to increase speeds using gpu accel. dont lock to pygame
+        self.display_surface : pygame.Surface | None = None # modify in future for more general impl to increase speeds using gpu accel. dont lock to pygame
+        if __PYGAME_ONLY:
+            self.display_surface = pygame.display.get_surface() # modify in future for more general impl to increase speeds using gpu accel. dont lock to pygame
 
         self.__settingsFilePathCache : str | None = None
 
