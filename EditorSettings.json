@@ -3,8 +3,8 @@
     "ZOOM" : 100,
     "EDITOR_WINDOW_SIZE"    : 80,
     "BACGROUND_COL"         : [200, 200, 200],
-    "MAJOR_RULE_LINE_COL"   : [200,200,200],
 
+    "MAJOR_RULE_LINE_COL"   : [200,200,200],
     "MAJOR_RULE_LINE_OPACITY"   : 0.8,
 
     "MINOR_RULE_LINE_COL"       : [25,25,25],
@@ -15,5 +15,6 @@
 
     "CALC_CYCLES_PER_SECOND"    : 120,
     "SCROLL_SPEED"  : 1,
-    "ZOOM_SPEED"    : 1
+    "ZOOM_SPEED"    : 1,
+    "PAN_SPEED"     : 1
 }

@@ -9,6 +9,8 @@ from enum import Enum, auto
 from Common import *
 from Maths.Maths import *
 
+import GlobalSettings
+
 
 DEFAULT_ZOOM = 100.0
 
@@ -69,8 +71,6 @@ class Editor:
         if __PYGAME_ONLY:
             self.display_surface = pygame.display.get_surface() # modify in future for more general impl to increase speeds using gpu accel. dont lock to pygame
 
-        self.__settingsFilePathCache : str | None = None
-
         self.__originPos    = Vec2()
 
         self.__panActive    = False
@@ -84,29 +84,75 @@ class Editor:
         self.Init   : bool  = False
         self.state  : EditorState   = EditorState.Initialisig
 
-    def Initialise(self, settingsPath):
+    def Initialise(self):
+
         self.Load()
         self.state  = EditorState.Playing
         self.Init   = True
 
-    def Load(self, settingsPath : str | None = None):
-        if not settingsPath:
-            return
+    def Load(self):
+        settingsPath = GlobalSettings.Settings.EditorSettingsPath
+        if not settingsPath:    return
+        if not os.path.exists(settingsPath):    return
         
-        if not os.path.exists(settingsPath):
-            return
-        
-
         settingsData = {}
-                
         with open(settingsPath, "r") as data:
             settingsData = json.load(data)
+
+            self.__settings.GENERAL.CalcCyclesPerSecond     = settingsData["CALC_CYCLES_PER_SECOND"]
+            self.__settings.GENERAL.GraphDensity            = settingsData["GRAPH_DENSITY"]
+            self.__settings.GENERAL.PanSpeed                = settingsData["PAN_SPEED"]
+            self.__settings.GENERAL.ScrollSpeed             = settingsData["SCROLL_SPEED"]
+            self.__settings.GENERAL.ZoomSpeed               = settingsData["ZOOM_SPEED"]
+
+            self.__settings.GRAPHICS.MinorRuleLineCol       = Vec3(*settingsData["MINOR_RULE_LINE_COL"])
+            self.__settings.GRAPHICS.MinorRuleLineOpacity   = settingsData["MINOR_RULE_LINE_OPACITY"]
+
+            self.__settings.GRAPHICS.MajorRuleLineCol       = Vec3(*settingsData["MAJOR_RULE_LINE_COL"])
+            self.__settings.GRAPHICS.MajorRuleLineOpacity   = settingsData["MAJOR_RULE_LINE_OPACITY"]
+
+            self.__settings.GRAPHICS.BackGroundColour       = Vec3(*settingsData["BACGROUND_COL"])
+            self.__settings.GRAPHICS.Zoom                   = settingsData["ZOOM"]
+            
+            self.__settings.TEMPORAL.AnimationSpeed         = 1.0
+
+
+    def Save(self):
+        settingsPath = GlobalSettings.Settings.EditorSettingsPath
+        if not settingsPath:    return
+        if not os.path.exists(settingsPath):    return
+
+        
+        with open(settingsPath, "r") as data:
+            settingsData = json.load(data)
+
+            settingsData["CALC_CYCLES_PER_SECOND"]  = self.__settings.GENERAL.CalcCyclesPerSecond
+            settingsData["GRAPH_DENSITY"]           = self.__settings.GENERAL.GraphDensity
+            settingsData["PAN_SPEED"]               = self.__settings.GENERAL.PanSpeed
+            settingsData["SCROLL_SPEED"]            = self.__settings.GENERAL.ScrollSpeed
+            settingsData["ZOOM_SPEED"]              = self.__settings.GENERAL.ZoomSpeed
+
+            settingsData["MINOR_RULE_LINE_COL"]     = list(self.__settings.GRAPHICS.MinorRuleLineCol.get_p())
+            settingsData["MINOR_RULE_LINE_OPACITY"] = self.__settings.GRAPHICS.MinorRuleLineOpacity
+
+            settingsData["MAJOR_RULE_LINE_COL"]     = list(self.__settings.GRAPHICS.MajorRuleLineCol.get_p())
+            settingsData["MAJOR_RULE_LINE_OPACITY"] = self.__settings.GRAPHICS.MajorRuleLineOpacity
+
+            settingsData["BACGROUND_COL"]           = list(self.__settings.GRAPHICS.BackGroundColour.get_p())
+            settingsData["ZOOM"]                    = self.__settings.GRAPHICS.Zoom
+
+            json.dump(settingsData, data, indent=4)
         
 
-        self.__settingsFilePathCache = settingsPath
+
+
+
 
     def Pan(self, mouseDelta : Vec2):
-        ...
+        self.__originPos -= mouseDelta
+
+
+
 
 
     def Update(self, dt : float):
