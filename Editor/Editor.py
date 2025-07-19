@@ -25,6 +25,7 @@ DEFAULT_CALC_CYCLES_PER_SECOND  = 120
 
 DEFAULT_SCROLL_SPEED    = 1
 DEFAULT_ZOOM_SPEED      = 1
+DEFAULT_PAN_SPEED       = 1
 
 
 
@@ -45,6 +46,7 @@ class __EDITOR_SETTINGS:
         CalcCyclesPerSecond = DEFAULT_CALC_CYCLES_PER_SECOND # how many times the calculation thread runs per second
 
         ScrollSpeed     = DEFAULT_SCROLL_SPEED
+        PanSpeed        = DEFAULT_PAN_SPEED
         ZoomSpeed       = DEFAULT_ZOOM_SPEED
     
     class TEMPORAL:
@@ -53,8 +55,10 @@ class __EDITOR_SETTINGS:
 
 
 class EditorState(Enum):
-    Playing = 0
-    Paused  = auto()
+    Initialisig = 0
+    Playing     = 1
+    Paused      = auto()
+    Quit        = auto()
 
 
 
@@ -67,13 +71,23 @@ class Editor:
 
         self.__settingsFilePathCache : str | None = None
 
-        self.__originPos  = Vec2()
-        self.__panActive  = False
-        self.__panOffset  = Vec2()
+        self.__originPos    = Vec2()
+
+        self.__panActive    = False
+        self.__panOffset    = Vec2()
+        self.__currentPanVelocity  = Vec2()
+        self.__panDampingMax    = Vec2() # the largest counter vector that can be applied to panning velocity 
 
 
         self.__settings : __EDITOR_SETTINGS = __EDITOR_SETTINGS()
 
+        self.Init   : bool  = False
+        self.state  : EditorState   = EditorState.Initialisig
+
+    def Initialise(self, settingsPath):
+        self.Load()
+        self.state  = EditorState.Playing
+        self.Init   = True
 
     def Load(self, settingsPath : str | None = None):
         if not settingsPath:
@@ -91,6 +105,8 @@ class Editor:
 
         self.__settingsFilePathCache = settingsPath
 
+    def Pan(self, mouseDelta : Vec2):
+        ...
 
 
     def Update(self, dt : float):
