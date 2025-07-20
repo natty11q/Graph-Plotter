@@ -5,14 +5,21 @@ class Settings:
 
     EditorSettingsPath  : str   | None = None
 
-    FramerateCap        : float | None = None
-    VsyncEnabled        : bool  | None = None
-    FramerateUncapped   : bool  | None = None
+    FramerateCap        : float = 0
+    VsyncEnabled        : bool  = False
+    FramerateUncapped   : bool  = False
     
     GraphicsEngine      : str   | None = None
 
     
     DebugEnabled        : bool  | None = None
+
+
+    WindowWidth         : float = 900
+    WindowHeight        : float = 600
+
+    WindowMinWidth      : float = 450
+    WindowMinHeight     : float = 300
 
     @staticmethod
     def Load(settingsPath : str):
@@ -25,14 +32,23 @@ class Settings:
             data : dict = json.load(settings)
             
             
-            EditorSettingsPath  = data.get("EditorSettingsPath", None)
-            FramerateCap        = data.get("FramerateCap", 60)
-            VsyncEnabled        = data.get("VsyncEnabled", False)
-            FramerateUncapped   = data.get("FramerateUncapped", False)
+            Settings.EditorSettingsPath     = data.get("EditorSettingsPath", None)
+            Settings.FramerateCap           = data.get("FramerateCap", 60)
+            Settings.VsyncEnabled           = data.get("VsyncEnabled", False)
+            Settings.FramerateUncapped      = data.get("FramerateUncapped", False)
 
-            GraphicsEngine      = data.get("GraphicsEngine", "None")
+            Settings.GraphicsEngine         = data.get("GraphicsEngine", "None")
+
+            Settings.DebugEnabled           = data.get("DebugEnabled", False)
             
-            DebugEnabled        = data.get("DebugEnabled", False)
+
+            windowDims                      = data.get("WindowDimensions", [10,10])
+            windowMinDims                   = data.get("WindowMinDimensions", [10,10])
+
+            Settings.WindowWidth            = windowDims[0]
+            Settings.WindowHeight           = windowDims[1]
+            Settings.WindowMinWidth         = windowMinDims[0]
+            Settings.WindowMinHeight        = windowMinDims[1]
 
 
 
@@ -44,18 +60,20 @@ class Settings:
             print("failed to save settings")
             return
         
-        with open(Settings.settingsPath, "r") as settings:
+        with open(Settings.settingsPath, "r+") as settings:
             data : dict = json.load(settings)
 
-            if Settings.EditorSettingsPath:
+            if Settings.EditorSettingsPath is not None:
                 data["EditorSettingsPath"] = Settings.EditorSettingsPath
-            if Settings.FramerateCap:
+            if Settings.FramerateCap is not None:
                 data["FramerateCap"] = Settings.FramerateCap
-            if Settings.VsyncEnabled:
+            if Settings.VsyncEnabled is not None:
                 data["VsyncEnabled"] = Settings.VsyncEnabled
-            if Settings.FramerateUncapped:
+            if Settings.FramerateUncapped is not None:
                 data["FramerateUncapped"] = Settings.FramerateUncapped
-            if Settings.GraphicsEngine:
+            if Settings.GraphicsEngine is not None:
                 data["GraphicsEngine"] = Settings.GraphicsEngine
-            if Settings.DebugEnabled:
+            if Settings.DebugEnabled is not None:
                 data["DebugEnabled"] = Settings.DebugEnabled
+
+            json.dump(data, settings)

@@ -1,2 +1,5 @@
 pygame
 numpy
+pillow
+
+pyobjc-framework-Cocoa

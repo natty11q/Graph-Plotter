@@ -35,7 +35,7 @@ class Vector:
         return not self.__eq__(other)
 
     # Returns a tuple with the point corresponding to the vector
-    def get_p(self) -> tuple [float, ...]:
+    def get_p(self) -> tuple:
         return (self.x, self.y)
 
     # Returns a copy of the vector
@@ -186,7 +186,7 @@ class _Vector(Vector):
         return not self.__eq__(other)
 
     # Returns a tuple with the point corresponding to the vector
-    def get_p(self) -> tuple [float , ...]:
+    def get_p(self) -> tuple:
         return tuple(self._m_vec)
 
     # Returns a copy of the vector
@@ -499,6 +499,9 @@ class Vec3(_Vector):
     def toVec2(self):
         return Vec2(self.x, self.y)
     
+    def get_p(self) -> tuple [float, float, float]:
+        return super().get_p()
+    
     def __getattr__(self, name):
         """Allows swizzling (e.g., vec.xy, vec.yzx, etc.)"""
         mapping = {'x': 0, 'y': 1, 'z': 2, 'r': 0, 'g': 1, 'b': 2}
@@ -546,6 +549,10 @@ class Vec4(_Vector):
             else:
                 return Vector(*values) if len(values) > 1 else values[0]
         raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
+    
+    
+    def get_p(self) -> tuple [float, float, float, float]:
+        return super().get_p()
     
     def toVec2(self):
         return Vec2(self.x, self.y)

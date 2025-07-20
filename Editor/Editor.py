@@ -1,5 +1,4 @@
-__PYGAME_ONLY = True
-
+_PYGAME_ONLY = True
 
 #inputs and disp
 import pygame, sys, os
@@ -10,7 +9,7 @@ from Common import *
 from Maths.Maths import *
 
 import GlobalSettings
-
+import Utility.ColourPicker as MacosColPicker
 
 DEFAULT_ZOOM = 100.0
 
@@ -31,7 +30,7 @@ DEFAULT_PAN_SPEED       = 1
 
 
 
-class __EDITOR_SETTINGS:
+class _EDITOR_SETTINGS:
     class GRAPHICS:
         Zoom : float            = DEFAULT_ZOOM
         BackGroundColour : Vec3 = DEFAULT_BACGROUND_COL
@@ -57,7 +56,7 @@ class __EDITOR_SETTINGS:
 
 
 class EditorState(Enum):
-    Initialisig = 0
+    Initialising = 0
     Playing     = 1
     Paused      = auto()
     Quit        = auto()
@@ -68,7 +67,7 @@ class EditorState(Enum):
 class Editor:
     def __init__(self):
         self.display_surface : pygame.Surface | None = None # modify in future for more general impl to increase speeds using gpu accel. dont lock to pygame
-        if __PYGAME_ONLY:
+        if _PYGAME_ONLY:
             self.display_surface = pygame.display.get_surface() # modify in future for more general impl to increase speeds using gpu accel. dont lock to pygame
 
         self.__originPos    = Vec2()
@@ -79,10 +78,15 @@ class Editor:
         self.__panDampingMax    = Vec2() # the largest counter vector that can be applied to panning velocity 
 
 
-        self.__settings : __EDITOR_SETTINGS = __EDITOR_SETTINGS()
+        self.__settings : _EDITOR_SETTINGS = _EDITOR_SETTINGS()
 
         self.Init   : bool  = False
-        self.state  : EditorState   = EditorState.Initialisig
+        self.state  : EditorState   = EditorState.Initialising
+
+        self.colPickerProcess : Process | None = None
+        self.colPickerManager : Manager | None = None# type:ignore
+        self.shared_data : dict = {}
+
 
     def Initialise(self):
 
@@ -99,22 +103,22 @@ class Editor:
         with open(settingsPath, "r") as data:
             settingsData = json.load(data)
 
-            self.__settings.GENERAL.CalcCyclesPerSecond     = settingsData["CALC_CYCLES_PER_SECOND"]
-            self.__settings.GENERAL.GraphDensity            = settingsData["GRAPH_DENSITY"]
-            self.__settings.GENERAL.PanSpeed                = settingsData["PAN_SPEED"]
-            self.__settings.GENERAL.ScrollSpeed             = settingsData["SCROLL_SPEED"]
-            self.__settings.GENERAL.ZoomSpeed               = settingsData["ZOOM_SPEED"]
+        self.__settings.GENERAL.CalcCyclesPerSecond     = settingsData["CALC_CYCLES_PER_SECOND"]
+        self.__settings.GENERAL.GraphDensity            = settingsData["GRAPH_DENSITY"]
+        self.__settings.GENERAL.PanSpeed                = settingsData["PAN_SPEED"]
+        self.__settings.GENERAL.ScrollSpeed             = settingsData["SCROLL_SPEED"]
+        self.__settings.GENERAL.ZoomSpeed               = settingsData["ZOOM_SPEED"]
 
-            self.__settings.GRAPHICS.MinorRuleLineCol       = Vec3(*settingsData["MINOR_RULE_LINE_COL"])
-            self.__settings.GRAPHICS.MinorRuleLineOpacity   = settingsData["MINOR_RULE_LINE_OPACITY"]
+        self.__settings.GRAPHICS.MinorRuleLineCol       = Vec3(*settingsData["MINOR_RULE_LINE_COL"])
+        self.__settings.GRAPHICS.MinorRuleLineOpacity   = settingsData["MINOR_RULE_LINE_OPACITY"]
 
-            self.__settings.GRAPHICS.MajorRuleLineCol       = Vec3(*settingsData["MAJOR_RULE_LINE_COL"])
-            self.__settings.GRAPHICS.MajorRuleLineOpacity   = settingsData["MAJOR_RULE_LINE_OPACITY"]
+        self.__settings.GRAPHICS.MajorRuleLineCol       = Vec3(*settingsData["MAJOR_RULE_LINE_COL"])
+        self.__settings.GRAPHICS.MajorRuleLineOpacity   = settingsData["MAJOR_RULE_LINE_OPACITY"]
 
-            self.__settings.GRAPHICS.BackGroundColour       = Vec3(*settingsData["BACGROUND_COL"])
-            self.__settings.GRAPHICS.Zoom                   = settingsData["ZOOM"]
-            
-            self.__settings.TEMPORAL.AnimationSpeed         = 1.0
+        self.__settings.GRAPHICS.BackGroundColour       = Vec3(*settingsData["BACGROUND_COL"])
+        self.__settings.GRAPHICS.Zoom                   = settingsData["ZOOM"]
+        
+        self.__settings.TEMPORAL.AnimationSpeed         = 1.0
 
 
     def Save(self):
@@ -123,26 +127,48 @@ class Editor:
         if not os.path.exists(settingsPath):    return
 
         
+        
+        settingsData = {}
         with open(settingsPath, "r") as data:
             settingsData = json.load(data)
 
-            settingsData["CALC_CYCLES_PER_SECOND"]  = self.__settings.GENERAL.CalcCyclesPerSecond
-            settingsData["GRAPH_DENSITY"]           = self.__settings.GENERAL.GraphDensity
-            settingsData["PAN_SPEED"]               = self.__settings.GENERAL.PanSpeed
-            settingsData["SCROLL_SPEED"]            = self.__settings.GENERAL.ScrollSpeed
-            settingsData["ZOOM_SPEED"]              = self.__settings.GENERAL.ZoomSpeed
+        settingsData["CALC_CYCLES_PER_SECOND"]  = self.__settings.GENERAL.CalcCyclesPerSecond
+        settingsData["GRAPH_DENSITY"]           = self.__settings.GENERAL.GraphDensity
+        settingsData["PAN_SPEED"]               = self.__settings.GENERAL.PanSpeed
+        settingsData["SCROLL_SPEED"]            = self.__settings.GENERAL.ScrollSpeed
+        settingsData["ZOOM_SPEED"]              = self.__settings.GENERAL.ZoomSpeed
 
-            settingsData["MINOR_RULE_LINE_COL"]     = list(self.__settings.GRAPHICS.MinorRuleLineCol.get_p())
-            settingsData["MINOR_RULE_LINE_OPACITY"] = self.__settings.GRAPHICS.MinorRuleLineOpacity
+        settingsData["MINOR_RULE_LINE_COL"]     = list(self.__settings.GRAPHICS.MinorRuleLineCol.get_p())
+        settingsData["MINOR_RULE_LINE_OPACITY"] = self.__settings.GRAPHICS.MinorRuleLineOpacity
 
-            settingsData["MAJOR_RULE_LINE_COL"]     = list(self.__settings.GRAPHICS.MajorRuleLineCol.get_p())
-            settingsData["MAJOR_RULE_LINE_OPACITY"] = self.__settings.GRAPHICS.MajorRuleLineOpacity
+        settingsData["MAJOR_RULE_LINE_COL"]     = list(self.__settings.GRAPHICS.MajorRuleLineCol.get_p())
+        settingsData["MAJOR_RULE_LINE_OPACITY"] = self.__settings.GRAPHICS.MajorRuleLineOpacity
 
-            settingsData["BACGROUND_COL"]           = list(self.__settings.GRAPHICS.BackGroundColour.get_p())
-            settingsData["ZOOM"]                    = self.__settings.GRAPHICS.Zoom
-
-            json.dump(settingsData, data, indent=4)
+        settingsData["BACGROUND_COL"]           = list(self.__settings.GRAPHICS.BackGroundColour.get_p())
+        settingsData["ZOOM"]                    = self.__settings.GRAPHICS.Zoom
         
+        with open(settingsPath, "w") as data:
+            json.dump(settingsData, data, indent=4)
+
+
+
+
+    def BackgroundColourPicker(self):
+        if self.colPickerProcess is not None:
+            if self.colPickerProcess.is_alive():
+                return
+        
+        self.colPickerManager = Manager()
+        if self.colPickerManager is not None:
+            self.shared_data = self.colPickerManager.dict()
+            self.shared_data["colour"]        = list(self.__settings.GRAPHICS.BackGroundColour.get_p()) # Initial RGB float
+            self.shared_data["shouldClose"]   = False
+
+        
+            self.colPickerProcess = Process(target= MacosColPicker.RunWheel, args=(self.shared_data,))
+            self.colPickerProcess.start()
+
+
 
 
 
@@ -152,11 +178,19 @@ class Editor:
         self.__originPos -= mouseDelta
 
 
-
+    def JoinThreadsNProcesses(self):
+        if self.colPickerProcess is not None:
+            self.colPickerProcess.join()
 
 
     def Update(self, dt : float):
-        ...
+        col = self.shared_data.get("colour", self.__settings.GRAPHICS.BackGroundColour.get_p())
+        # print(self.shared_data.get("colour"))
+        self.__settings.GRAPHICS.BackGroundColour = Vec3(*col)
+    
+        if self.display_surface:
+            self.display_surface.fill(
+                    color = self.__settings.GRAPHICS.BackGroundColour.get_p()) # type: ignore
 
     def MathsUpdate(self, ts): # handle calcs on a different thread
         ...
@@ -165,3 +199,6 @@ class Editor:
 
         col : tuple[float, ...] = self.__settings.GRAPHICS.BackGroundColour.get_p()
         self.display_surface.fill(col) # type: ignore
+
+    def Quit(self):
+        self.JoinThreadsNProcesses()
