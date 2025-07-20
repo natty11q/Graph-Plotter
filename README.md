@@ -1,2 +1,2 @@
 # Graph-Plotter
-Simple Graph plotting test app
+A simple Fast Robust and customisable graphing calculator.
