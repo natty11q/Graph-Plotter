@@ -180,7 +180,7 @@ class Editor:
 
     def JoinThreadsNProcesses(self):
         if self.colPickerProcess is not None:
-            self.colPickerProcess.join()
+            self.colPickerProcess.kill()
 
 
     def Update(self, dt : float):

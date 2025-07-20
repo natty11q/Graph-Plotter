@@ -1,4 +1,4 @@
-from Cocoa import NSApplication, NSColorPanel, NSObject, NSNotificationCenter, NSWindowWillCloseNotification #type: ignore
+from Cocoa import NSApplication, NSColorPanel,NSBundle,  NSColor, NSObject, NSNotificationCenter, NSWindowWillCloseNotification #type: ignore
 import objc
 import sys , os
 import threading
@@ -37,11 +37,19 @@ class ColorPickerDelegate(NSObject):
 
 def RunWheel(data: dict):
     with objc.autorelease_pool():
+        info = NSBundle.mainBundle().infoDictionary()
+        info["LSUIElement"] = "1"
+        
         app = NSApplication.sharedApplication()
+        app.activateIgnoringOtherApps_(True)
 
         delegate = ColorPickerDelegate.alloc().initWithData_(data)
 
         panel = NSColorPanel.sharedColorPanel()
+        
+
+        firstcol = data["colour"]
+        panel.setColor_(NSColor.colorWithCalibratedRed_green_blue_alpha_(firstcol[0] / 255, firstcol[1] / 255, firstcol[2] / 255, 1.0))
         panel.setTarget_(delegate)
         notification_center = NSNotificationCenter.defaultCenter() #type: ignore
         notification_center.addObserver_selector_name_object_(
@@ -53,4 +61,4 @@ def RunWheel(data: dict):
         panel.setAction_("colorPanelColorDidChange:")
         panel.makeKeyAndOrderFront_(None)
 
-        app.run()
+    app.run()
