@@ -1,13 +1,21 @@
 from __future__ import annotations
-from typing import override, overload
+from typing import override, overload, Literal, Union
 import sys
 
 import math
 
 ## TODO: Extend (ensure all required overloads re present)
 
+from itertools import product
 
+components = "xyzwrgba"
+swizzle_2 = list(map("".join, product(components, repeat=2)))
+swizzle_3 = list(map("".join, product(components, repeat=3)))
+swizzle_4 = list(map("".join, product(components, repeat=4)))
 
+Swizzle2 = tuple(swizzle_2)
+Swizzle3 = tuple(swizzle_3)
+Swizzle4 = tuple(swizzle_4)
 
 # The Vector class
 class Vector:
@@ -459,11 +467,22 @@ class Vec2(_Vector):
         
     def __sizeof__(self) -> int:
         return super().__sizeof__()
-    
-    
+
+
+
+    @overload
+    def __getattr__(self, name: Literal["x", "y",
+                                        "r", "g"]) -> float: ...
+
+    @overload
+    def __getattr__(self, name: Literal["xx", "xy",
+                                        "yx", "yy",
+                                        "rr", "rg",
+                                        "gr", "gg"]) -> Vec2: ...
+
     def __getattr__(self, name):
         """Allows swizzling (e.g., vec.xy, vec.yzx, etc.)"""
-        mapping = {'x': 0, 'y': 1, 'r': 0, 'i': 1}
+        mapping = {'x': 0, 'y': 1, 'r': 0, 'i': 1, 'g' : 1}
         if all(c in mapping for c in name):
             indices = [mapping[c] for c in name]
             values  = [self._m_vec[i] for i in indices if i < len(self._m_vec)]
@@ -479,6 +498,13 @@ class Vec2(_Vector):
                 return Vector(*values) if len(values) > 1 else values[0]
         raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
 
+    def __setattr__(self, name: str, value: float) -> None:
+        mapping = {'x': 0, 'y': 1, 'r': 0, 'g' : 1, 'i' : 1}
+        if name in mapping:
+            self._m_vec[mapping[name]] = value
+        else:
+            super().__setattr__(name, value)
+            # raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
 
 
 class Vec3(_Vector):
@@ -487,21 +513,46 @@ class Vec3(_Vector):
         self._OnUpdate()
     
     def _OnUpdate(self) -> None:
-        self.x : float = self._m_vec[0]
-        self.y : float = self._m_vec[1]
-        self.z : float = self._m_vec[2]
+        ...
+        # self.x : float = self._m_vec[0]
+        # self.y : float = self._m_vec[1]
+        # self.z : float = self._m_vec[2]
         
         
-        self.r : float = self._m_vec[0]
-        self.g : float = self._m_vec[1]
-        self.b : float = self._m_vec[2]
+        # self.r : float = self._m_vec[0]
+        # self.g : float = self._m_vec[1]
+        # self.b : float = self._m_vec[2]
 
     def toVec2(self):
         return Vec2(self.x, self.y)
     
     def get_p(self) -> tuple [float, float, float]:
         return super().get_p()
-    
+
+
+
+    @overload
+    def __getattr__(self, name: Literal["x", "y", "z",
+                                        "r", "g", "b"]) -> float: ...
+
+    @overload
+    def __getattr__(self, name: Literal["xx", "xy", "xz",
+                                        "yx", "yy", "yz",
+                                        "zx", "zy", "zz",
+
+                                        "rr", "rg", "rb",
+                                        "gr", "gg", "gb",
+                                        "br", "bg", "bb"]) -> Vec2: ...
+
+    @overload
+    def __getattr__(self, name: Literal["xxx", "xxy", "xxz", "xyx", "xyy", "xyz", "xzx", "xzy", "xzz", 
+                                        "yxx", "yxy", "yxz", "yyx", "yyy", "yyz", "yzx", "yzy", "yzz", 
+                                        "zxx", "zxy", "zxz", "zyx", "zyy", "zyz", "zzx", "zzy", "zzz",
+
+                                        "rrr", "rrg", "rrb", "rgr", "rgg", "rgb", "rbr", "rbg", "rbb",
+                                        "grr", "grg", "grb", "ggr", "ggg", "ggb", "gbr", "gbg", "gbb",
+                                        "brr", "brg", "brb", "bgr", "bgg", "bgb", "bbr", "bbg", "bbb"]) -> Vec3: ...
+
     def __getattr__(self, name):
         """Allows swizzling (e.g., vec.xy, vec.yzx, etc.)"""
         mapping = {'x': 0, 'y': 1, 'z': 2, 'r': 0, 'g': 1, 'b': 2}
@@ -519,24 +570,149 @@ class Vec3(_Vector):
         raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
 
 
+    def __setattr__(self, name: str, value: float) -> None:
+        mapping = {'x': 0, 'y': 1, 'z': 2, 'r': 0, 'g': 1, 'b': 2}
+        if name in mapping:
+            self._m_vec[mapping[name]] = value
+        else:
+            super().__setattr__(name, value)
+
 class Vec4(_Vector):
     def __init__(self, x:float = 0, y:float = 0, z:float = 0, w:float = 0):
         super().__init__(x, y, z, w)
         self._OnUpdate()
     
     def _OnUpdate(self) -> None:
-        self.x : float = self._m_vec[0]
-        self.y : float = self._m_vec[1]
-        self.z : float = self._m_vec[2]
-        self.w : float = self._m_vec[3]
+        ...
+        # self.x : float = self._m_vec[0]
+        # self.y : float = self._m_vec[1]
+        # self.z : float = self._m_vec[2]
+        # self.w : float = self._m_vec[3]
 
 
-        self.r : float = self._m_vec[0]
-        self.g : float = self._m_vec[1]
-        self.b : float = self._m_vec[2]
-        self.a : float = self._m_vec[3]
+        # self.r : float = self._m_vec[0]
+        # self.g : float = self._m_vec[1]
+        # self.b : float = self._m_vec[2]
+        # self.a : float = self._m_vec[3]
 
-    def __getattr__(self, name):
+    @overload
+    def __getattr__(self, name: Literal["x", "y", "z", "w",
+                                        "r", "g", "b", "a"]) -> float: ...
+
+    @overload
+    def __getattr__(self, name: Literal["xx", "xy", "xz", "xw",
+                                        "yx", "yy", "yz", "yw",
+                                        "zx", "zy", "zz", "zw",
+                                        "wx", "wy", "wz", "ww",
+                                        
+                                        "rr", "rg", "rb", "ra",
+                                        "gr", "gg", "gb", "ga",
+                                        "br", "bg", "bb", "ba",
+                                        "ar", "ag", "ab", "aa"]) -> Vec2: ...
+
+    @overload
+    def __getattr__(self, name: Literal["xxx", "xxy", "xxz", "xxw", "xyx", "xyy", "xyz", "xyw", 
+                                        "xzx", "xzy", "xzz", "xzw", "xwx", "xwy", "xwz", "xww", 
+                                        "yxx", "yxy", "yxz", "yxw", "yyx", "yyy", "yyz", "yyw", 
+                                        "yzx", "yzy", "yzz", "yzw", "ywx", "ywy", "ywz", "yww", 
+                                        "zxx", "zxy", "zxz", "zxw", "zyx", "zyy", "zyz", "zyw", 
+                                        "zzx", "zzy", "zzz", "zzw", "zwx", "zwy", "zwz", "zww", 
+                                        "wxx", "wxy", "wxz", "wxw", "wyx", "wyy", "wyz", "wyw", 
+                                        "wzx", "wzy", "wzz", "wzw", "wwx", "wwy", "wwz", "www",
+
+                                        "rrr", "rrg", "rrb", "rra", "rgr", "rgg", "rgb", "rga", 
+                                        "rbr", "rbg", "rbb", "rba", "rar", "rag", "rab", "raa", 
+                                        "grr", "grg", "grb", "gra", "ggr", "ggg", "ggb", "gga", 
+                                        "gbr", "gbg", "gbb", "gba", "gar", "gag", "gab", "gaa", 
+                                        "brr", "brg", "brb", "bra", "bgr", "bgg", "bgb", "bga", 
+                                        "bbr", "bbg", "bbb", "bba", "bar", "bag", "bab", "baa", 
+                                        "arr", "arg", "arb", "ara", "agr", "agg", "agb", "aga", 
+                                        "abr", "abg", "abb", "aba", "aar", "aag", "aab", "aaa"]) -> Vec3: ...
+
+    @overload
+    def __getattr__(self, name: Literal["xxxx", "xxxy", "xxxz", "xxxw", "xxyx", "xxyy", "xxyz", 
+                                        "xxyw", "xxzx", "xxzy", "xxzz", "xxzw", "xxwx", "xxwy", 
+                                        "xxwz", "xxww", "xyxx", "xyxy", "xyxz", "xyxw", "xyyx", 
+                                        "xyyy", "xyyz", "xyyw", "xyzx", "xyzy", "xyzz", "xyzw", 
+                                        "xywx", "xywy", "xywz", "xyww", "xzxx", "xzxy", "xzxz", 
+                                        "xzxw", "xzyx", "xzyy", "xzyz", "xzyw", "xzzx", "xzzy", 
+                                        "xzzz", "xzzw", "xzwx", "xzwy", "xzwz", "xzww", "xwxx", 
+                                        "xwxy", "xwxz", "xwxw", "xwyx", "xwyy", "xwyz", "xwyw", 
+                                        "xwzx", "xwzy", "xwzz", "xwzw", "xwwx", "xwwy", "xwwz", 
+                                        "xwww", "yxxx", "yxxy", "yxxz", "yxxw", "yxyx", "yxyy", 
+                                        "yxyz", "yxyw", "yxzx", "yxzy", "yxzz", "yxzw", "yxwx", 
+                                        "yxwy", "yxwz", "yxww", "yyxx", "yyxy", "yyxz", "yyxw", 
+                                        "yyyx", "yyyy", "yyyz", "yyyw", "yyzx", "yyzy", "yyzz", 
+                                        "yyzw", "yywx", "yywy", "yywz", "yyww", "yzxx", "yzxy", 
+                                        "yzxz", "yzxw", "yzyx", "yzyy", "yzyz", "yzyw", "yzzx", 
+                                        "yzzy", "yzzz", "yzzw", "yzwx", "yzwy", "yzwz", "yzww", 
+                                        "ywxx", "ywxy", "ywxz", "ywxw", "ywyx", "ywyy", "ywyz", 
+                                        "ywyw", "ywzx", "ywzy", "ywzz", "ywzw", "ywwx", "ywwy", 
+                                        "ywwz", "ywww", "zxxx", "zxxy", "zxxz", "zxxw", "zxyx", 
+                                        "zxyy", "zxyz", "zxyw", "zxzx", "zxzy", "zxzz", "zxzw", 
+                                        "zxwx", "zxwy", "zxwz", "zxww", "zyxx", "zyxy", "zyxz", 
+                                        "zyxw", "zyyx", "zyyy", "zyyz", "zyyw", "zyzx", "zyzy", 
+                                        "zyzz", "zyzw", "zywx", "zywy", "zywz", "zyww", "zzxx", 
+                                        "zzxy", "zzxz", "zzxw", "zzyx", "zzyy", "zzyz", "zzyw", 
+                                        "zzzx", "zzzy", "zzzz", "zzzw", "zzwx", "zzwy", "zzwz", 
+                                        "zzww", "zwxx", "zwxy", "zwxz", "zwxw", "zwyx", "zwyy", 
+                                        "zwyz", "zwyw", "zwzx", "zwzy", "zwzz", "zwzw", "zwwx", 
+                                        "zwwy", "zwwz", "zwww", "wxxx", "wxxy", "wxxz", "wxxw", 
+                                        "wxyx", "wxyy", "wxyz", "wxyw", "wxzx", "wxzy", "wxzz", 
+                                        "wxzw", "wxwx", "wxwy", "wxwz", "wxww", "wyxx", "wyxy", 
+                                        "wyxz", "wyxw", "wyyx", "wyyy", "wyyz", "wyyw", "wyzx", 
+                                        "wyzy", "wyzz", "wyzw", "wywx", "wywy", "wywz", "wyww", 
+                                        "wzxx", "wzxy", "wzxz", "wzxw", "wzyx", "wzyy", "wzyz", 
+                                        "wzyw", "wzzx", "wzzy", "wzzz", "wzzw", "wzwx", "wzwy", 
+                                        "wzwz", "wzww", "wwxx", "wwxy", "wwxz", "wwxw", "wwyx", 
+                                        "wwyy", "wwyz", "wwyw", "wwzx", "wwzy", "wwzz", "wwzw", 
+                                        "wwwx", "wwwy", "wwwz", "wwww",
+
+                                        "rrrr", "rrrg", "rrrb", "rrra", "rrgr", "rrgg", "rrgb", 
+                                        "rrga", "rrbr", "rrbg", "rrbb", "rrba", "rrar", "rrag", 
+                                        "rrab", "rraa", "rgrr", "rgrg", "rgrb", "rgra", "rggr", 
+                                        "rggg", "rggb", "rgga", "rgbr", "rgbg", "rgbb", "rgba", 
+                                        "rgar", "rgag", "rgab", "rgaa", "rbrr", "rbrg", "rbrb", 
+                                        "rbra", "rbgr", "rbgg", "rbgb", "rbga", "rbbr", "rbbg", 
+                                        "rbbb", "rbba", "rbar", "rbag", "rbab", "rbaa", "rarr", 
+                                        "rarg", "rarb", "rara", "ragr", "ragg", "ragb", "raga", 
+                                        "rabr", "rabg", "rabb", "raba", "raar", "raag", "raab", 
+                                        "raaa", "grrr", "grrg", "grrb", "grra", "grgr", "grgg", 
+                                        "grgb", "grga", "grbr", "grbg", "grbb", "grba", "grar", 
+                                        "grag", "grab", "graa", "ggrr", "ggrg", "ggrb", "ggra", 
+                                        "gggr", "gggg", "gggb", "ggga", "ggbr", "ggbg", "ggbb", 
+                                        "ggba", "ggar", "ggag", "ggab", "ggaa", "gbrr", "gbrg", 
+                                        "gbrb", "gbra", "gbgr", "gbgg", "gbgb", "gbga", "gbbr", 
+                                        "gbbg", "gbbb", "gbba", "gbar", "gbag", "gbab", "gbaa", 
+                                        "garr", "garg", "garb", "gara", "gagr", "gagg", "gagb", 
+                                        "gaga", "gabr", "gabg", "gabb", "gaba", "gaar", "gaag", 
+                                        "gaab", "gaaa", "brrr", "brrg", "brrb", "brra", "brgr", 
+                                        "brgg", "brgb", "brga", "brbr", "brbg", "brbb", "brba", 
+                                        "brar", "brag", "brab", "braa", "bgrr", "bgrg", "bgrb", 
+                                        "bgra", "bggr", "bggg", "bggb", "bgga", "bgbr", "bgbg", 
+                                        "bgbb", "bgba", "bgar", "bgag", "bgab", "bgaa", "bbrr", 
+                                        "bbrg", "bbrb", "bbra", "bbgr", "bbgg", "bbgb", "bbga", 
+                                        "bbbr", "bbbg", "bbbb", "bbba", "bbar", "bbag", "bbab", 
+                                        "bbaa", "barr", "barg", "barb", "bara", "bagr", "bagg", 
+                                        "bagb", "baga", "babr", "babg", "babb", "baba", "baar", 
+                                        "baag", "baab", "baaa", "arrr", "arrg", "arrb", "arra", 
+                                        "argr", "argg", "argb", "arga", "arbr", "arbg", "arbb", 
+                                        "arba", "arar", "arag", "arab", "araa", "agrr", "agrg", 
+                                        "agrb", "agra", "aggr", "aggg", "aggb", "agga", "agbr", 
+                                        "agbg", "agbb", "agba", "agar", "agag", "agab", "agaa", 
+                                        "abrr", "abrg", "abrb", "abra", "abgr", "abgg", "abgb", 
+                                        "abga", "abbr", "abbg", "abbb", "abba", "abar", "abag", 
+                                        "abab", "abaa", "aarr", "aarg", "aarb", "aara", "aagr", 
+                                        "aagg", "aagb", "aaga", "aabr", "aabg", "aabb", "aaba", 
+                                        "aaar", "aaag", "aaab", "aaaa"]) -> Vec4: ...
+
+
+    # @overload
+    # def __getattr__(self, name) -> Vector:
+    #     ...
+                    
+
+    def __getattr__(self, name) -> float | Vec2 | Vec3 | Vec4 | Vector:
         """Allows swizzling (e.g., vec.xy, vec.yzx, etc.)"""
         mapping = {'x': 0, 'y': 1, 'z': 2, 'w': 3, 'r': 0, 'g': 1, 'b': 2, 'a': 3}
         if all(c in mapping for c in name):
@@ -546,11 +722,21 @@ class Vec4(_Vector):
                 return values[0]
             elif len(values) == 2:
                 return Vec2(*values)
+            elif len(values) == 3:
+                return Vec3(*values)
+            elif len(values) == 4:
+                return Vec4(*values)
             else:
                 return Vector(*values) if len(values) > 1 else values[0]
         raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
     
-    
+    def __setattr__(self, name: str, value: float) -> None:
+        mapping = {'x': 0, 'y': 1, 'z': 2, 'w': 3, 'r': 0, 'g': 1, 'b': 2, 'a': 3}
+        if name in mapping:
+            self._m_vec[mapping[name]] = value
+        else:
+            super().__setattr__(name, value)
+
     def get_p(self) -> tuple [float, float, float, float]:
         return super().get_p()
     

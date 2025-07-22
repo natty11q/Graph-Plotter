@@ -11,6 +11,8 @@ from Maths.Maths import *
 import GlobalSettings
 import Utility.ColourPicker as MacosColPicker
 
+from Editor.EditorUI import *
+
 DEFAULT_ZOOM = 100.0
 
 DEFAULT_BACGROUND_COL  = Vec3(255,255,255)
@@ -191,6 +193,11 @@ class Editor:
         if self.display_surface:
             self.display_surface.fill(
                     color = self.__settings.GRAPHICS.BackGroundColour.get_p()) # type: ignore
+
+
+                # test
+        if Keys.Keys.IsKeyPressed(IO.KeyMap["q"]):
+            self.BackgroundColourPicker()
 
     def MathsUpdate(self, ts): # handle calcs on a different thread
         ...

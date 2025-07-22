@@ -1,4 +1,6 @@
 from UI.UIBase import *
+from Utility.CoreUtility import *
+
 
 class EditorUI(UIManager):
 
@@ -6,6 +8,9 @@ class EditorUI(UIManager):
         super().__init__()
 
         self.Load()
+    
 
+    def Update(self):
+        ...
     
     

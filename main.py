@@ -4,6 +4,11 @@ import sys, os
 import time 
 
 from Editor.Editor import Editor
+import Utility.Temporal as Temporal
+import UI.UICommon as Ucommon
+import UI.Keys as Ukeys
+
+from Event.EventHandler import *
 
 
 
@@ -32,15 +37,16 @@ class Main:
 
         self.running = False
 
-        self.deltatime : float = sys.float_info.min  # avoid potential div by 0 errors on stuartup
-
         self.frameCount = 0
+
+        # Ukeys.Keys.Init()
+        Ucommon.IO.Init()
 
     def run(self):
         self.running = True
         self.display_surface.fill(color = (10,10,20), rect=None, special_flags=0)
         while self.running:
-            self.deltatime = self.clock.tick(GlobalSettings.Settings.FramerateCap) / 1000
+            # self.deltatime = self.clock.tick(GlobalSettings.Settings.FramerateCap) / 1000
             
             
             self.ManageEvents()
@@ -56,16 +62,58 @@ class Main:
             if event.type == pygame.QUIT:
                 self.editor.Quit()
                 self.running = False
+            elif event.type == pygame.KEYDOWN:
+                e : Event   = KeyDownEvent()
+                e.keycode   = event.key
+                sendEvent(e)
+
+            elif event.type == pygame.KEYUP:
+                e : Event   = KeyUpEvent()
+                e.keycode   = event.key
+                sendEvent(e)
 
             
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_q:
-                    print("picker om")
-                    self.editor.BackgroundColourPicker()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                e : Event   = MouseButtonDownEvent()
+                e.x = event.pos[0]
+                e.y = event.pos[1]
+                e.button = event.button
+                sendEvent(e)
 
+            elif event.type == pygame.MOUSEBUTTONUP:
+                e : Event   = MouseButtonUpEvent()
+                e.x = event.pos[0]
+                e.y = event.pos[1]
+                e.button = event.button
+                sendEvent(e)
+
+            elif event.type == pygame.MOUSEMOTION:
+                e : Event   = MouseMovedEvent()
+                e.x = event.pos[0]
+                e.y = event.pos[1]
+                sendEvent(e)
+                
+            elif event.type == pygame.MOUSEWHEEL:
+                e : Event   = MouseScrollEvent()
+                e.x = event.pos[0]
+                e.y = event.pos[1]
+                sendEvent(e)
+
+            elif event.type == pygame.WINDOWMINIMIZED:
+                ...
+            elif event.type == pygame.WINDOWMAXIMIZED:
+                ...
+            elif event.type == pygame.WINDOWRESIZED:
+                ...
+
+            # TODO : COMPLETE EVENTS!!!
 
     def Update(self):
-        self.editor.Update(self.deltatime)
+        Temporal.PlotEngineTime.Update()
+        Ucommon.IO.Update()
+        if Ucommon.IO.MouseDown[0] or Ucommon.IO.MouseDown[1] or Ucommon.IO.MouseDown[2]:
+            print(Ucommon.IO.MouseClicked)
+        self.editor.Update(Temporal.PlotEngineTime.DeltaTime())
         self.frameCount += 1
         # print("updating", self.frameCount)
 
