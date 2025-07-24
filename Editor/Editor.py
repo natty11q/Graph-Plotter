@@ -89,6 +89,8 @@ class Editor:
         self.colPickerManager : Manager | None = None# type:ignore
         self.shared_data : dict = {}
 
+        self.UI : EditorUI = EditorUI()
+
 
     def Initialise(self):
 
